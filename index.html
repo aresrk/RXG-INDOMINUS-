@@ -31,7 +31,7 @@
     }
     .btn-oro:hover { background: #dfb76c; color: #0a0a0a; box-shadow: 0 0 30px rgba(223, 183, 108, 0.4); transform: translateY(-2px); }
     
-    /* CONTENEDOR DE PERFIL DE TWITCH */
+    /* CONTENEDOR DE PERFIL */
     .perfil-contenedor {
       display: flex;
       flex-direction: column;
@@ -88,13 +88,13 @@
   <div id="pantallaInicio" class="pantalla">
     <h1>RXG INDOMINUS</h1>
     <div class="subtitulo-autor">Creado por: <span>AresRK</span></div>
-    <a id="btnLogin" class="btn-oro" href="#" onclick="abrirAutorizacionDev(event)">Iniciar Sesión</a>
+    <a id="btnLogin" class="btn-oro" href="#" onclick="simularEntradaMenu(event)">Iniciar Sesión</a>
   </div>
 
   <div id="pantallaMenu" class="pantalla oculto">
     <div class="perfil-contenedor">
-      <img id="userAvatar" class="avatar-twitch" src="" alt="Perfil">
-      <div id="menuTitulo" class="menu-titulo">Cargando datos...</div>
+      <img id="userAvatar" class="avatar-twitch cargado" src="https://pages.twitch.tv/styleguide/images/glitch.png" alt="Perfil">
+      <div id="menuTitulo" class="menu-titulo">Hola, AresRK</div>
     </div>
     <div class="menu-linea"></div>
     
@@ -118,68 +118,13 @@
   </div>
 
   <script>
-    // CONFIGURACIÓN GLOBAL CORREGIDA CON EL GUION AL FINAL
-    const CLIENT_ID = 'hjf8kkt3r3qa6bdgvntkq7nga59fab'; 
+    // URL limpia para reiniciar el sitio al cerrar sesión
     const REDIRECT_URI = 'https://aresrk.github.io/RXG-INDOMINUS-/'; 
-    const SCOPES = 'moderator:read:chatters';
 
-    window.onload = function() {
-      let accessToken = null;
-      
-      if (window.location.hash) {
-        const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
-        accessToken = hashParams.get('access_token');
-      } 
-      
-      if (!accessToken) {
-        const urlParams = new URLSearchParams(window.location.search);
-        accessToken = urlParams.get('access_token');
-      }
-
-      if (accessToken) {
-        ejecutarTransicionMenu();
-        obtenerDatosUsuario(accessToken);
-      }
-    };
-
-    function abrirAutorizacionDev(event) {
+    // Función de simulación: Te mete directo al menú con animaciones activas
+    function simularEntradaMenu(event) {
       event.preventDefault();
-      var urlSegura = 'https://id.twitch.tv/oauth2/authorize' +
-                      '?client_id=' + CLIENT_ID +
-                      '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
-                      '&response_type=token' + 
-                      '&scope=' + encodeURIComponent(SCOPES) +
-                      '&force_verify=true' +
-                      '&lang=es'; 
-      window.location.href = urlSegura;
-    }
-
-    function obtenerDatosUsuario(token) {
-      fetch('https://api.twitch.tv/helix/users', {
-        method: 'GET',
-        headers: {
-          'Client-ID': CLIENT_ID,
-          'Authorization': 'Bearer ' + token
-        }
-      })
-      .then(response => response.json())
-      .then(resultado => {
-        if (resultado.data && resultado.data.length > 0) {
-          const usuario = resultado.data[0];
-          
-          document.getElementById('menuTitulo').innerText = "Hola, " + usuario.display_name;
-          
-          const avatarImg = document.getElementById('userAvatar');
-          avatarImg.src = usuario.profile_image_url;
-          avatarImg.classList.add('cargado');
-          
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      })
-      .catch(error => { 
-        console.error('Error al conectar con la API:', error);
-        document.getElementById('menuTitulo').innerText = "Panel General";
-      });
+      ejecutarTransicionMenu();
     }
 
     function ejecutarTransicionMenu() {
@@ -193,8 +138,21 @@
 
     function abrirAdvertencia() { document.getElementById('miModal').classList.add('activo'); }
     function cerrarAdvertencia() { document.getElementById('miModal').classList.remove('activo'); }
-    function confirmarCerrarSesion() { window.location.href = REDIRECT_URI; }
-    function cargarSeccion(nombre) { alert("Has entrado a la sección: " + nombre); }
+    
+    function confirmarCerrarSesion() { 
+      // Al cerrar sesión, reiniciamos la animación regresando a la pantalla 1
+      document.getElementById('miModal').classList.remove('activo');
+      document.getElementById('botonCerrarSesion').classList.remove('visible');
+      document.getElementById('pantallaMenu').classList.add('oculto');
+      setTimeout(function() {
+        document.getElementById('pantallaInicio').classList.remove('oculto');
+        document.getElementById('pantallaMenu').style.visibility = 'hidden';
+      }, 600);
+    }
+
+    function cargarSeccion(nombre) { 
+      alert("Sección en desarrollo: " + nombre); 
+    }
   </script>
 </body>
 </html>
