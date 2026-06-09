@@ -98,7 +98,9 @@
   <script>
     // CONFIGURACIÓN GLOBAL DE TU APP
     const CLIENT_ID = 'jtwdrj3a05pcqgweyvqqajbb6clpvk'; 
-    const REDIRECT_URI = 'https://github.io'; 
+    
+    // CAMBIO AQUÍ: Añadida tu dirección real de GitHub Pages
+    const REDIRECT_URI = 'https://aresrk.github.io/RXG-INDOMINUS/'; 
 
     // OJO: Esta URL de Vercel la cambiaremos en el siguiente paso cuando nos den tu link real
     const BACKEND_URL = 'https://vercel.app'; 
@@ -118,7 +120,8 @@
     function abrirAutorizacionDev(event) {
       event.preventDefault();
       
-      var urlSegura = 'https://twitch.tv' +
+      // CAMBIO AQUÍ: Ahora apunta a la URL oficial de autenticación de Twitch
+      var urlSegura = 'https://id.twitch.tv/oauth2/authorize' +
                       '?client_id=' + CLIENT_ID +
                       '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
                       '&response_type=code' +
