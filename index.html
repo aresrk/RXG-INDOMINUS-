@@ -82,7 +82,7 @@
     .barra-contenedor {
       width: 80%;
       max-width: 350px;
-      height: 18px; /* Un poco más gruesa para que el destello impacte más */
+      height: 18px;
       background: rgba(0, 0, 0, 0.7);
       border: 1px solid rgba(223, 183, 108, 0.35);
       border-radius: 10px;
@@ -103,23 +103,23 @@
       overflow: hidden;
     }
 
-    /* ⚡ RÁFAGA PLATEADA ULTRA VÍVIDA (MÁXIMO PODER DE LUZ) ⚡ */
+    /* RÁFAGA PLATEADA ULTRA VÍVIDA */
     .barra-progreso::after {
       content: '';
       position: absolute;
       top: 0; left: -150px; bottom: 0; 
-      width: 110px; /* Súper ancha */
+      width: 110px;
       background: linear-gradient(
         90deg, 
         rgba(255, 255, 255, 0) 0%, 
         rgba(230, 240, 255, 0.4) 30%,
-        rgba(255, 255, 255, 1) 50%,   /* Blanco sólido metálico en el centro */
+        rgba(255, 255, 255, 1) 50%,   
         rgba(230, 240, 255, 0.4) 70%,
         rgba(255, 255, 255, 0) 100%
       );
       transform: skewX(-35deg);
-      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)); /* Resplandor de luz propio */
-      animation: brilloFeroz 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; /* Más rápido y dinámico */
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9));
+      animation: brilloFeroz 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     }
 
     @keyframes brilloFeroz {
@@ -192,7 +192,7 @@
     <div class="fila-opciones">
       <button class="btn-opcion" onclick="cargarSeccion('ranking')">Ranking</button>
       <button class="btn-opcion" onclick="cargarSeccion('lives')">Lives</button>
-      <button class="btn-opcion" onclick="cannotCargarSeccion('recompensas')">Recompensas</button>
+      <button class="btn-opcion" onclick="cargarSeccion('recompensas')">Recompensas</button>
       <button class="btn-opcion" onclick="cargarSeccion('comunidad')">Comunidad</button>
       <button class="btn-opcion" onclick="cargarSeccion('soporte')">Soporte</button>
     </div>
@@ -217,6 +217,8 @@
 
     let usuarioActual = { id: "", name: "" };
     const PUNTOS_MAXIMOS = 100;
+    let websocketChat = null;
+    let puedoGanarPuntosChat = true; 
 
     // MOTOR DE RAYOS
     const canvas = document.getElementById('canvasRayos');
@@ -290,6 +292,47 @@
       }, 3600000); 
     }
 
+    // ⚡ CONEXIÓN DINÁMICA AL CHAT DE TWITCH DEL USUARIO LOGUEADO ⚡
+    function conectarAlChatTwitch() {
+      if (!usuarioActual.name) return;
+
+      websocketChat = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+
+      websocketChat.onopen = function() {
+        websocketChat.send('PASS oauth:justinfan12345'); 
+        websocketChat.send('NICK justinfan12345');
+        // Se conecta automáticamente al canal del usuario logueado
+        websocketChat.send('JOIN #' + usuarioActual.name.toLowerCase());
+        console.log("Conectado dinámicamente al chat del canal: " + usuarioActual.name);
+      };
+
+      websocketChat.onmessage = function(evento) {
+        const mensajeRaw = evento.data;
+        
+        if (mensajeRaw.includes('PRIVMSG')) {
+          const partes = mensajeRaw.split('!');
+          const usuarioQueComento = partes[0].substring(1).toLowerCase();
+
+          // Premia al usuario si comenta en su propio directo/comunidad activa
+          if (usuarioQueComento === usuarioActual.name.toLowerCase()) {
+            if (puedoGanarPuntosChat) {
+              console.log("¡Comentario detectado! Otorgando 10 puntos.");
+              sincronizarPuntosConBaseDatos(10);
+
+              puedoGanarPuntosChat = false;
+              setTimeout(function() {
+                puedoGanarPuntosChat = true;
+              }, 300000); 
+            }
+          }
+        }
+      };
+
+      websocketChat.onclose = function() {
+        setTimeout(conectarAlChatTwitch, 5000);
+      };
+    }
+
     // LOGICA TWITCH
     window.onload = function() {
       let accessToken = null;
@@ -337,9 +380,9 @@
           
           sincronizarPuntosConBaseDatos(0);
           iniciarTemporizadorVisualizacion();
+          conectarAlChatTwitch(); // Inicia la escucha dinámica
 
-          // Mantengo la prueba en 45 puntos para que veas pasar el rayo plateado de luz líquida a la mitad
-          actualizarInterfazPuntos(45);
+          actualizarInterfazPuntos(0);
 
           window.history.replaceState({}, document.title, window.location.pathname);
         }
