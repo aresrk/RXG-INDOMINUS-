@@ -87,6 +87,28 @@
     }
     .avatar-twitch.cargado { opacity: 1; }
 
+    /* COMPONENTES DE LA BARRA DE PUNTOS RECUPERADA */
+    .marcador-puntos { font-size: 0.85rem; letter-spacing: 2px; color: #f3e1b9; margin-top: 8px; font-weight: 600; text-transform: uppercase; }
+    .marcador-puntos span { color: #ffffff; font-weight: 800; text-shadow: 0 0 10px rgba(223, 183, 108, 0.5); }
+
+    .barra-contenedor {
+      width: 80%; max-width: 350px; height: 18px; background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(223, 183, 108, 0.35); border-radius: 10px; margin: 12px auto 5px auto;
+      overflow: hidden; padding: 2px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+    }
+    .barra-progreso {
+      height: 100%; width: 45%; /* Puesta a un valor inicial de muestra, se puede cambiar dinámicamente */
+      background: linear-gradient(90deg, #ffd700, #fff6a3, #ffffff);
+      border-radius: 8px; box-shadow: 0 0 15px rgba(255, 235, 59, 0.6); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative; overflow: hidden;
+    }
+    .barra-progreso::after {
+      content: ''; position: absolute; top: 0; left: -150px; bottom: 0; width: 110px;
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 30%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.4) 70%, rgba(255,255,255,0) 100%);
+      transform: skewX(-35deg); filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)); animation: brilloFeroz 1.8s infinite;
+    }
+    @keyframes brilloFeroz { 0% { left: -150px; } 100% { left: 120%; } }
+
     /* TEXTO DE MENÚ */
     .menu-titulo {
       font-size: 1.6rem; font-weight: 800; letter-spacing: 6px; text-transform: uppercase;
@@ -138,7 +160,7 @@
     .modal-botones { display: flex; justify-content: center; gap: 15px; }
     .modal-botones .btn-opcion { flex: 1 1 120px; padding: 12px 10px; }
 
-    /* ESTILOS ADICIONALES REUTILIZANDO TUS CLASES PARA LA SECCIÓN DE LIVES */
+    /* SECCIÓN DE LIVES */
     .lista-lives { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; text-align: left; max-height: 250px; overflow-y: auto; padding-right: 5px; }
     .tarjeta-live { background: rgba(20, 19, 17, 0.8); padding: 15px; border-radius: 6px; border: 1px solid rgba(223, 183, 108, 0.2); border-left: 4px solid #dfb76c; display: flex; justify-content: space-between; align-items: center; }
     .msg-vacio { font-size: 0.9rem; color: #aaaaaa; letter-spacing: 2px; text-transform: uppercase; margin: 35px 0; font-style: italic; font-weight: 400; text-align: center; }
@@ -160,6 +182,11 @@
     <div class="perfil-contenedor">
       <img id="userAvatar" class="avatar-twitch" src="" alt="Perfil">
       <div id="menuTitulo" class="menu-titulo">Cargando datos...</div>
+      
+      <div class="marcador-puntos">Puntos: <span id="contadorPuntos">45</span> / 100</div>
+      <div class="barra-contenedor">
+        <div id="barraProgreso" class="barra-progreso"></div>
+      </div>
     </div>
     <div class="menu-linea"></div>
     
@@ -206,7 +233,7 @@
     let miNombreTwitch = "";
 
     // ==========================================
-    // MOTOR DE GENERACIÓN DE RAYOS EN CANVAS (REALISTA - INTACTO)
+    // MOTOR DE GENERACIÓN DE RAYOS EN CANVAS (TORMENTA ELÉCTRICA POTENCIADA)
     // ==========================================
     const canvas = document.getElementById('canvasRayos');
     const ctx = canvas.getContext('2d');
@@ -225,52 +252,57 @@
       
       puntos.push({x: x, y: y});
       
-      let pasos = 25;
+      let pasos = 28; // Más segmentos para que se vea más rápido y quebrado
       let dx = (x2 - x1) / pasos;
       let dy = (y2 - y1) / pasos;
       
       for (let i = 1; i < pasos; i++) {
-        x += dx + (Math.random() - 0.5) * 45; 
+        x += dx + (Math.random() - 0.5) * 55; // Desviación más violenta y salvaje
         y += dy;
         puntos.push({x: x, y: y});
         
-        if (ramas && Math.random() < 0.18) {
-          let extensionX = x + (Math.random() - 0.5) * 120;
-          let extensionY = y + Math.random() * 80;
+        // Ramificaciones eléctricas más seguidas
+        if (ramas && Math.random() < 0.25) {
+          let extensionX = x + (Math.random() - 0.5) * 140;
+          let extensionY = y + Math.random() * 90;
           crearRayo(x, y, extensionX, extensionY, false);
         }
       }
       puntos.push({x: x2, y: y2});
 
+      // Dibujar resplandor - AMARILLO ENERGÍA PURA/LUZ NEÓN ELEVADO
       ctx.beginPath();
       ctx.moveTo(puntos[0].x, puntos[0].y);
       for (let i = 1; i < puntos.length; i++) {
         ctx.lineTo(puntos[i].x, puntos[i].y);
       }
-      ctx.strokeStyle = 'rgba(255, 220, 50, 0.8)';
-      ctx.lineWidth = ramas ? 3 : 1.5;
-      ctx.shadowColor = '#ffcc00';
-      ctx.shadowBlur = 25;
+      ctx.strokeStyle = 'rgba(255, 242, 0, 0.9)'; // Amarillo puro súper encendido
+      ctx.lineWidth = ramas ? 4 : 2; // Rayos ligeramente más gruesos para impactar más
+      ctx.shadowColor = '#fff200'; // Brillo neón amarillo luz
+      ctx.shadowBlur = 35; // Resplandor expandido
       ctx.stroke();
 
+      // Centro blanco incandescente original
       ctx.beginPath();
       ctx.moveTo(puntos[0].x, puntos[0].y);
       for (let i = 1; i < puntos.length; i++) {
         ctx.lineTo(puntos[i].x, puntos[i].y);
       }
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = ramas ? 1.2 : 0.6;
+      ctx.lineWidth = ramas ? 1.5 : 0.8;
       ctx.shadowBlur = 0;
       ctx.stroke();
     }
 
     function bucleTormenta() {
-      ctx.fillStyle = 'rgba(3, 3, 3, 0.28)';
+      // Menor opacidad en el rastro (0.2) para que se desvanezcan más rápido aumentando la sensación de velocidad
+      ctx.fillStyle = 'rgba(3, 3, 3, 0.2)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      if (Math.random() < 0.05) { 
+      // Frecuencia aumentada (0.12) para que caigan múltiples rayos de forma masiva
+      if (Math.random() < 0.12) { 
         let xInicio = Math.random() * canvas.width;
-        let xFin = xInicio + (Math.random() - 0.5) * (canvas.width * 0.4);
+        let xFin = xInicio + (Math.random() - 0.5) * (canvas.width * 0.5);
         crearRayo(xInicio, 0, xFin, canvas.height, true);
       }
       requestAnimationFrame(bucleTormenta);
@@ -330,7 +362,6 @@
           avatarImg.classList.add('cargado');
           window.history.replaceState({}, document.title, window.location.pathname);
           
-          // Iniciar rastreo automático inicial y temporizador minutario
           conectarEscuchaChat(usuario.login);
           setInterval(ejecutarPasoDeAsistenciaMinutario, 60000);
         }
@@ -341,7 +372,6 @@
       });
     }
 
-    // CONEXIÓN AL WEBSOCKET PARA CAPTURAR QUIÉN ESCRIBE
     function conectarEscuchaChat(canal) {
       if(websocketChat) websocketChat.close();
       websocketChat = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
@@ -360,7 +390,6 @@
       };
     }
 
-    // ENVÍA LA LISTA DE ESPECTADORES Y ACTIVOS DE FORMA INVISIBLE CADA 1 MINUTO
     function ejecutarPasoDeAsistenciaMinutario() {
       if(!miNombreTwitch || !miUsuarioId) return;
       
@@ -399,7 +428,6 @@
       }, 400);
     }
 
-    // MANEJO FLUIDO DE LA SECCIÓN LIVES (CON TUS PROPIOS TIEMPOS DE REPRODUCCIÓN)
     function abrirPantallaLives() {
       document.getElementById('pantallaMenu').classList.add('oculto');
       setTimeout(function() {
@@ -422,36 +450,4 @@
               <div class="tarjeta-live">
                 <div>
                   <strong style="color:#fff; letter-spacing:1px; text-transform:uppercase; font-size:0.85rem;">${canal.streamer}</strong><br>
-                  <span style="font-size:0.7rem; color:#dfb76c;">● Transmisión Programada</span>
-                </div>
-                <button class="btn-oro" style="padding:8px 15px; font-size:0.65rem;" onclick="enlazarApoyoStreamer('${canal.streamer}')">APOYAR</button>
-              </div>`;
-          });
-        }
-      })
-      .catch(() => { 
-        contenedor.innerHTML = '<div class="msg-vacio">En espera de transmisiónes</div>'; 
-      });
-    }
-
-    function enlazarApoyoStreamer(streamer) {
-      alert(`Rastreador enlazado a ${streamer}. Se abrirá su canal; mantén interactivo el chat para registrar tus puntos de forma continua.`);
-      conectarEscuchaChat(streamer);
-      window.open(`https://twitch.tv/${streamer}`, '_blank');
-    }
-
-    function volverAlMenuDesdeLives() {
-      document.getElementById('pantallaLives').classList.add('oculto');
-      setTimeout(function() {
-        document.getElementById('pantallaMenu').classList.remove('oculto');
-      }, 400);
-    }
-
-    // CONTROL DEL MODAL ORIGINAL
-    function abrirAdvertencia() { document.getElementById('miModal').classList.add('activo'); }
-    function cerrarAdvertencia() { document.getElementById('miModal').classList.remove('activo'); }
-    function confirmarCerrarSesion() { window.location.href = REDIRECT_URI; }
-    function cargarSeccion(nombre) { alert("Has entrado a la sección: " + nombre); }
-  </script>
-</body>
-</html>
+                  <span style="font-size
