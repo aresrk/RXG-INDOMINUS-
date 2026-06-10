@@ -78,13 +78,13 @@
       text-shadow: 0 0 10px rgba(223, 183, 108, 0.5);
     }
 
-    /* ⚡ BARRA DE PROGRESO ELÉCTRICA (ESTILO GAMING) ⚡ */
+    /* BARRA DE PROGRESO CON RÁFAGA REPOTENCIADA */
     .barra-contenedor {
       width: 80%;
       max-width: 350px;
-      height: 14px;
+      height: 16px; /* Un pelín más alta para que luzca más */
       background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(223, 183, 108, 0.25);
+      border: 1px solid rgba(223, 183, 108, 0.3);
       border-radius: 10px;
       margin: 12px auto 5px auto;
       overflow: hidden;
@@ -94,32 +94,33 @@
 
     .barra-progreso {
       height: 100%;
-      width: 0%; /* Empieza en zero y sube con JS */
-      background: linear-gradient(90deg, #b89b00, #ffd700, #fff099);
+      width: 0%; 
+      background: linear-gradient(90deg, #cc9a06, #ffd700, #fff2a3);
       border-radius: 8px;
-      box-shadow: 0 0 12px #ffd700;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
       transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
+      overflow: hidden;
     }
 
-    /* Efecto de brillo animado dentro de la barra */
+    /* RÁFAGA DE LUZ BLANCA MUCHO MÁS VÍVIDA Y ULTRA VISIBLE */
     .barra-progreso::after {
       content: '';
       position: absolute;
-      top: 0; left: 0; bottom: 0; right: 0;
+      top: 0; left: -150px; bottom: 0; width: 80px; /* Ráfaga más ancha */
       background: linear-gradient(
-        -45deg, 
-        rgba(255, 255, 255, 0) 25%, 
-        rgba(255, 255, 255, 0.3) 50%, 
-        rgba(255, 255, 255, 0) 75%
+        90deg, 
+        rgba(255, 255, 255, 0) 0%, 
+        rgba(255, 255, 255, 0.6) 50%, /* Mucha más opacidad (0.6) para que brille fuerte */
+        rgba(255, 255, 255, 0) 100%
       );
-      background-size: 40px 40px;
-      animation: brilloBarra 1.5s linear infinite;
+      transform: skewX(-30deg); /* Inclinación de la ráfaga */
+      animation: brilloFeroz 2s ease-in-out infinite; /* Animación infinita fluida */
     }
 
-    @keyframes brilloBarra {
-      0% { background-position: 0 0; }
-      100% { background-position: 40px 0; }
+    @keyframes brilloFeroz {
+      0% { left: -150px; }
+      100% { left: 100%; }
     }
 
     .menu-titulo {
@@ -165,12 +166,14 @@
   <canvas id="canvasRayos"></canvas>
   <button id="botonCerrarSesion" class="btn-logout" onclick="abrirAdvertencia()">Cerrar Sesión</button>
 
+  <!-- PANTALLA 1 -->
   <div id="pantallaInicio" class="pantalla">
     <h1>RXG INDOMINUS</h1>
     <div class="subtitulo-autor">Creado por: <span>AresRK</span></div>
     <a id="btnLogin" class="btn-oro" href="#" onclick="abrirAutorizacionDev(event)">Iniciar Sesión</a>
   </div>
 
+  <!-- PANTALLA 2 -->
   <div id="pantallaMenu" class="pantalla oculto">
     <div class="perfil-contenedor">
       <img id="userAvatar" class="avatar-twitch" src="" alt="Perfil">
@@ -211,11 +214,9 @@
     const URL_GOOGLE_SCRIPT = 'AQUÍ_VA_TU_URL_DE_GOOGLE_APPS_SCRIPT'; 
 
     let usuarioActual = { id: "", name: "" };
-    const PUNTOS_MAXIMOS = 100; // Meta para llenar la barra
+    const PUNTOS_MAXIMOS = 100;
 
-    // ==========================================
     // MOTOR DE RAYOS (CANVAS)
-    // ==========================================
     const canvas = document.getElementById('canvasRayos');
     const ctx = canvas.getContext('2d');
     function ajustarCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -250,28 +251,18 @@
     }
     bucleTormenta();
 
-    // ==========================================
-    // SISTEMA DE PUNTOS Y ACTUALIZACIÓN DE BARRA
-    // ==========================================
-    
+    // INTERFAZ DE PUNTOS
     function actualizarInterfazPuntos(nuevosPuntos) {
       let marcador = document.getElementById('contadorPuntos');
       let barra = document.getElementById('barraProgreso');
-      
-      // Actualizar número
       marcador.innerText = nuevosPuntos;
-      
-      // Calcular porcentaje de la barra (máximo 100%)
       let porcentaje = (nuevosPuntos / PUNTOS_MAXIMOS) * 100;
-      if (porcentaje > 100) porcentaje = 100; // Por si se pasa de la meta
-      
-      // Mover la barra con animación suave
+      if (porcentaje > 100) porcentaje = 100;
       barra.style.width = porcentaje + "%";
     }
 
     function sincronizarPuntosConBaseDatos(puntosAMandar) {
       if (!usuarioActual.id || URL_GOOGLE_SCRIPT === 'AQUÍ_VA_TU_URL_DE_GOOGLE_APPS_SCRIPT') return;
-
       fetch(URL_GOOGLE_SCRIPT, {
         method: "POST",
         mode: "no-cors",
@@ -293,14 +284,11 @@
 
     function iniciarTemporizadorVisualizacion() {
       setInterval(function() {
-        console.log("¡Hora cumplida! +10 puntos.");
         sincronizarPuntosConBaseDatos(10);
       }, 3600000); 
     }
 
-    // ==========================================
-    // LÓGICA DE TWITCH
-    // ==========================================
+    // LOGICA TWITCH
     window.onload = function() {
       let accessToken = null;
       if (window.location.hash) {
@@ -345,12 +333,11 @@
           avatarImg.src = usuario.profile_image_url;
           avatarImg.classList.add('cargado');
           
-          // Registro/Consulta inicial
           sincronizarPuntosConBaseDatos(0);
           iniciarTemporizadorVisualizacion();
 
-          // Simulación de prueba: arranca con 20 puntos para ver la barra con color de inmediato
-          actualizarInterfazPuntos(20);
+          // Simulación de prueba: cambié a 45 puntos para que la barra se vea casi a la mitad y se note más la ráfaga
+          actualizarInterfazPuntos(45);
 
           window.history.replaceState({}, document.title, window.location.pathname);
         }
