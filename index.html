@@ -228,7 +228,7 @@
     let miNombreTwitch = "";
 
     // ==========================================
-    // MOTOR DE RAYOS EN CANVAS (MÁS ERRÁTICOS Y DIAGONALES)
+    // MOTOR DE RAYOS EN CANVAS
     // ==========================================
     const canvas = document.getElementById('canvasRayos');
     const ctx = canvas.getContext('2d');
@@ -248,14 +248,10 @@
       let dy = (y2 - y1) / pasos;
       
       for (let i = 1; i < pasos; i++) {
-        // Multiplicador aleatorio aumentado para hacer zigzags súper violentos y erráticos
         x += dx + (Math.random() - 0.5) * 80; 
-        // Ligeros rebotes o pausas en el eje Y para que no sea una caída perfecta
         y += dy + (Math.random() - 0.5) * 20; 
-        
         puntos.push({x: x, y: y});
         
-        // Ramas también se disparan en direcciones más salvajes
         if (ramas && Math.random() < 0.25) {
           crearRayo(x, y, x + (Math.random() - 0.5) * 200, y + (Math.random() * 120), false);
         }
@@ -279,7 +275,6 @@
       
       if (Math.random() < 0.15) { 
         let xInicio = Math.random() * canvas.width;
-        // xDestino ampliado masivamente para que el rayo cruce de lado a lado (esquinado)
         let xDestino = xInicio + (Math.random() - 0.5) * (canvas.width * 1.8);
         crearRayo(xInicio, 0, xDestino, canvas.height, true);
       }
@@ -335,10 +330,10 @@
           avatarImg.classList.add('cargado');
           window.history.replaceState({}, document.title, window.location.pathname);
           
+          // --- CORRECCIÓN APLICADA AQUÍ ---
           fetch(URL_GOOGLE_SCRIPT, {
             method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({ accion: "registrar_streamer", usuario: miNombreTwitch })
           });
 
@@ -392,10 +387,10 @@
       if(!miNombreTwitch || !canalSeleccionado) return;
       let chatteo = usuariosQueChatearonEsteMinuto.includes(miNombreTwitch.toLowerCase()) ? [miNombreTwitch] : [];
       
+      // --- CORRECCIÓN APLICADA AQUÍ ---
       fetch(URL_GOOGLE_SCRIPT, {
         method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ usuarios: [miNombreTwitch], usuariosQueChatearon: chatteo })
       }).then(() => {
         setTimeout(() => { actualizarBarraPuntos(miNombreTwitch); }, 2500);
@@ -413,7 +408,7 @@
     }
 
     // ==========================================
-    // SECCIÓN LIVES (TEXTOS IGUALADOS EN TAMAÑO)
+    // SECCIÓN LIVES
     // ==========================================
     function abrirPantallaLives() {
       document.getElementById('pantallaMenu').classList.add('oculto');
@@ -427,7 +422,6 @@
     function cargarLives() {
       const contenedor = document.getElementById('contenedorListaLives');
       
-      // Texto "Buscando agenda..." ajustado al tamaño y estilo exacto de "En espera..." pero manteniendo su color oro
       contenedor.innerHTML = '<div style="color:#dfb76c; font-size:0.9rem; text-transform:uppercase; letter-spacing:2px; text-align:center; margin:35px 0; font-style:italic; font-weight:400;">Buscando agenda...</div>';
 
       fetch(`${URL_GOOGLE_SCRIPT}?obtenerStreamers=true`)
@@ -503,8 +497,6 @@
   </script>
 </body>
 </html>
-
-   
 
 
 
