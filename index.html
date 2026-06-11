@@ -386,7 +386,11 @@
           fetch(URL_GOOGLE_SCRIPT, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ accion: "registrar_streamer", usuario: miNombreTwitch, id: miUsuarioId })
+            body: JSON.stringify({ 
+              accion: "registrar_streamer", 
+              usuario: miNombreTwitch,
+              id: miUsuarioId
+            })
           });
 
           actualizarBarraPuntos(usuario.login);
@@ -647,7 +651,6 @@
   </script>
 </body>
 </html>
-
 
 
 
